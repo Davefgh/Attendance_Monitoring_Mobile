@@ -10,6 +10,7 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String selectedSort = 'all'; // Default: show all students
   bool showSortMenu = false;
+  bool isHovering = false;
   List<StudentAttendance> attendanceList = [
     StudentAttendance(name: 'John Doe', studentId: '2024-001', status: 'present', time: '08:30 AM'),
     StudentAttendance(name: 'Jane Smith', studentId: '2024-002', status: 'late', time: '09:15 AM'),
@@ -68,15 +69,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    // Dashboard Button
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(
-                        Icons.dashboard,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
                     // ACLC Logo
                     Image.asset(
                       'images/aclc logo.png',
@@ -167,61 +159,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               ),
                             ),
                             const Spacer(),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  showSortMenu = !showSortMenu;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.sort,
-                                  color: Color(0xFF1E3A8A),
-                                  size: 24,
-                                ),
-                              ),
-                            ),
+                            // Expandable Sort Icon
+                            _buildExpandableSortIcon(),
                           ],
                         ),
                         
-                        const SizedBox(height: 16),
-                        
-                        // Sort Menu
-                        if (showSortMenu)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                _buildSortOption('all', 'All Students', Icons.people),
-                                _buildSortOption('present', 'Present', Icons.check_circle),
-                                _buildSortOption('late', 'Late', Icons.schedule),
-                                _buildSortOption('absent', 'Absent', Icons.cancel),
-                              ],
-                            ),
-                          ),
+                        const SizedBox(height: 20),
                         
                         // Attendance List
                         ListView.builder(
@@ -259,6 +202,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           unselectedItemColor: Colors.grey,
           type: BottomNavigationBarType.fixed,
           currentIndex: 1, // Attendance tab selected
+          onTap: (index) {
+            if (index == 0) {
+              Navigator.of(context).pop(); // Go back to dashboard
+            }
+          },
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -288,40 +236,58 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildStatusCard(String title, String count, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: color.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               icon,
               color: color,
-              size: 24,
+              size: 28,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Center(
             child: Text(
               count,
               style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: color,
-                fontSize: 28,
+                fontSize: 32,
               ),
             ),
           ),
@@ -330,9 +296,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             child: Text(
               title,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.black,
+                color: color,
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
+                fontSize: 14,
               ),
             ),
           ),
@@ -343,16 +309,20 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildStudentCard(StudentAttendance student) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _getStatusColor(student.status).withOpacity(0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -360,15 +330,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         children: [
           // Status Icon
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: _getStatusColor(student.status).withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               _getStatusIcon(student.status),
               color: _getStatusColor(student.status),
-              size: 20,
+              size: 24,
             ),
           ),
           const SizedBox(width: 16),
@@ -433,39 +403,91 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildSortOption(String status, String label, IconData icon) {
-    return InkWell(
+  Widget _buildExpandableSortIcon() {
+    return Stack(
+      children: [
+        // Main All Students Icon
+        GestureDetector(
+          onTap: () => selectSort('all'),
+          onTapDown: (_) => setState(() => isHovering = true),
+          onTapUp: (_) => setState(() => isHovering = false),
+          onTapCancel: () => setState(() => isHovering = false),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: selectedSort == 'all' ? const Color(0xFF1E3A8A) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+              border: Border.all(
+                color: selectedSort == 'all' ? const Color(0xFF1E3A8A) : Colors.grey[300]!,
+                width: selectedSort == 'all' ? 2 : 1,
+              ),
+            ),
+            child: Icon(
+              Icons.people_alt,
+              color: selectedSort == 'all' ? Colors.white : Colors.grey[600],
+              size: 24,
+            ),
+          ),
+        ),
+        
+        // Expanded Sort Options (shown when hovering)
+        if (isHovering)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              margin: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildExpandedSortOption('present', Icons.check_circle),
+                  const SizedBox(height: 8),
+                  _buildExpandedSortOption('late', Icons.schedule),
+                  const SizedBox(height: 8),
+                  _buildExpandedSortOption('absent', Icons.cancel),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildExpandedSortOption(String status, IconData icon) {
+    return GestureDetector(
       onTap: () => selectSort(status),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: selectedSort == status ? const Color(0xFF1E3A8A).withOpacity(0.1) : Colors.transparent,
+          color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.white,
           borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.grey[300]!,
+            width: selectedSort == status ? 2 : 1,
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.grey[600],
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.black,
-                fontWeight: selectedSort == status ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 16,
-              ),
-            ),
-            const Spacer(),
-            if (selectedSort == status)
-              const Icon(
-                Icons.check,
-                color: Color(0xFF1E3A8A),
-                size: 20,
-              ),
-          ],
+        child: Icon(
+          icon,
+          color: selectedSort == status ? Colors.white : Colors.grey[600],
+          size: 20,
         ),
       ),
     );
