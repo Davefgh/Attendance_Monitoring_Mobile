@@ -88,40 +88,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
+                    // ACLC Logo
+                    Image.asset(
+                      'images/aclc logo.png',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 12),
+                    // Teacher Dashboard Title
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Teacher Dashboard',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Welcome back, Teacher!',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Teacher Dashboard',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                        ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                    // Notification Bell
+                    const Icon(
+                      Icons.notifications_outlined,
+                      color: Colors.white,
+                      size: 28,
                     ),
                   ],
                 ),
@@ -158,9 +148,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 1.2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1.5,
                           children: [
                             _buildOverviewCard(
                               'Students',
@@ -189,7 +179,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ],
                         ),
                         
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 20),
                         
                         // Current Class Section
                         Text(
@@ -210,7 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           true, // is current class
                         ),
                         
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                         
                         // Next Class Section
                         Text(
@@ -285,15 +275,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildOverviewCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -301,32 +291,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Icon(
               icon,
-              color: color,
-              size: 24,
+              color: Colors.black,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             value,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: color,
-              fontSize: 28,
+              color: Colors.black,
+              fontSize: 22,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             title,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.grey[600],
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.black,
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
         ],
@@ -411,16 +402,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               countdown,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
