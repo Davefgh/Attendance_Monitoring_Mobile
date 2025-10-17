@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'attendance_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -246,6 +247,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           unselectedItemColor: Colors.grey,
           type: BottomNavigationBarType.fixed,
           currentIndex: 0,
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AttendanceScreen(),
+                ),
+              );
+            }
+          },
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -281,9 +291,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -303,21 +313,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-              fontSize: 22,
+          Center(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                fontSize: 22,
+              ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.black,
-              fontWeight: FontWeight.w500,
-              fontSize: 12,
+          Center(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.black,
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
