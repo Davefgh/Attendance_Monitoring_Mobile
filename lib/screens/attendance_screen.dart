@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'profile_screen.dart';
+import 'qr_screen.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -213,6 +214,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           onTap: (index) {
             if (index == 0) {
               Navigator.of(context).pop(); // Go back to dashboard
+            } else if (index == 2) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const QrScreen(),
+                ),
+              );
             } else if (index == 4) {
               Navigator.of(context).push(
                 MaterialPageRoute(
