@@ -159,8 +159,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               ),
                             ),
                             const Spacer(),
-                            // Expandable Sort Icon
-                            _buildExpandableSortIcon(),
+                            IconButton(
+                              onPressed: _showSortSheet,
+                              icon: const Icon(
+                                Icons.sort,
+                                color: Color(0xFF1E3A8A),
+                                size: 24,
+                              ),
+                              splashRadius: 22,
+                            ),
                           ],
                         ),
                         
@@ -261,26 +268,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 12),
           Center(
             child: Text(
               count,
@@ -403,93 +390,60 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildExpandableSortIcon() {
-    return Stack(
-      children: [
-        // Main All Students Icon
-        GestureDetector(
-          onTap: () => selectSort('all'),
-          onTapDown: (_) => setState(() => isHovering = true),
-          onTapUp: (_) => setState(() => isHovering = false),
-          onTapCancel: () => setState(() => isHovering = false),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: selectedSort == 'all' ? const Color(0xFF1E3A8A) : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
+  void _showSortSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Sort by',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E3A8A),
+                      ),
                 ),
+                const SizedBox(height: 12),
+                _buildSheetOption('All students', 'all', Icons.people_alt),
+                _buildSheetOption('Present', 'present', Icons.check_circle),
+                _buildSheetOption('Late', 'late', Icons.schedule),
+                _buildSheetOption('Absent', 'absent', Icons.cancel),
               ],
-              border: Border.all(
-                color: selectedSort == 'all' ? const Color(0xFF1E3A8A) : Colors.grey[300]!,
-                width: selectedSort == 'all' ? 2 : 1,
-              ),
-            ),
-            child: Icon(
-              Icons.people_alt,
-              color: selectedSort == 'all' ? Colors.white : Colors.grey[600],
-              size: 24,
             ),
           ),
-        ),
-        
-        // Expanded Sort Options (shown when hovering)
-        if (isHovering)
-          Positioned(
-            right: 0,
-            top: 0,
-            child: Container(
-              margin: const EdgeInsets.only(top: 8),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildExpandedSortOption('present', Icons.check_circle),
-                  const SizedBox(height: 8),
-                  _buildExpandedSortOption('late', Icons.schedule),
-                  const SizedBox(height: 8),
-                  _buildExpandedSortOption('absent', Icons.cancel),
-                ],
-              ),
-            ),
-          ),
-      ],
+        );
+      },
     );
   }
 
-  Widget _buildExpandedSortOption(String status, IconData icon) {
-    return GestureDetector(
-      onTap: () => selectSort(status),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selectedSort == status ? const Color(0xFF1E3A8A) : Colors.grey[300]!,
-            width: selectedSort == status ? 2 : 1,
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: selectedSort == status ? Colors.white : Colors.grey[600],
-          size: 20,
+  Widget _buildSheetOption(String label, String value, IconData icon) {
+    final bool active = selectedSort == value;
+    return ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.zero,
+      leading: Icon(icon, color: active ? const Color(0xFF1E3A8A) : Colors.grey[600]),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: active ? const Color(0xFF1E3A8A) : Colors.black,
+          fontWeight: active ? FontWeight.w700 : FontWeight.w500,
         ),
       ),
+      trailing: active
+          ? const Icon(Icons.check, color: Color(0xFF1E3A8A))
+          : const SizedBox.shrink(),
+      onTap: () {
+        selectSort(value);
+        Navigator.pop(context);
+      },
     );
   }
 
