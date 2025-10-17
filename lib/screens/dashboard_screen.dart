@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'attendance_screen.dart';
+import 'profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -252,6 +253,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const AttendanceScreen(),
+                ),
+              );
+            } else if (index == 4) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
                 ),
               );
             }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'profile_screen.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -212,6 +213,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           onTap: (index) {
             if (index == 0) {
               Navigator.of(context).pop(); // Go back to dashboard
+            } else if (index == 4) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
+                ),
+              );
             }
           },
           items: const [
@@ -231,10 +238,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               icon: Icon(Icons.groups),
               label: 'Sections',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profile',
-            ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
           ],
         ),
       ),
