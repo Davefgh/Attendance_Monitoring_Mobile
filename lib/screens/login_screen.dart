@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/login_response_dto.dart';
+import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -47,12 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (response.success) {
-        // Navigate to home screen or dashboard
+        // Navigate to dashboard
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response.message ?? 'Login successful'),
-              backgroundColor: Colors.green,
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const DashboardScreen(),
             ),
           );
         }
