@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../models/login_response_dto.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import 'dashboard_screen.dart';
@@ -44,11 +43,12 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
 
-      if (response.success && response.accessToken != null) {
+      // Response is a Map<String, dynamic>
+      if (response['success'] == true && response['accessToken'] != null) {
         // Save tokens securely
         await StorageService.saveTokens(
-          response.accessToken!,
-          response.refreshToken ?? '',
+          response['accessToken'] as String,
+          response['refreshToken'] as String? ?? '',
         );
         
         if (mounted) {
@@ -60,13 +60,14 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       } else {
         setState(() {
-          _errorMessage = response.message ?? 'Login failed';
+          _errorMessage = response['message'] as String? ?? 'Login failed';
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Unable to connect to server. Please check your internet connection.';
+        _errorMessage = 'Unable to connect to server. Please check your internet connection. Error: $e';
       });
+      print('Login error: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF60A5FA), // Light blue fallback
+      backgroundColor: const Color(0xFF60A5FA),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -88,16 +89,15 @@ class _LoginScreenState extends State<LoginScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF1E3A8A), // Deep blue
-              Color(0xFF3B82F6), // Blue
-              Color(0xFF60A5FA), // Light blue
+              Color(0xFF1E3A8A),
+              Color(0xFF3B82F6),
+              Color(0xFF60A5FA),
             ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Logo/Title Section at top
               Expanded(
                 flex: 2,
                 child: Column(
@@ -122,7 +122,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               
-              // Login Form Container positioned below center
               Expanded(
                 flex: 3,
                 child: Container(
@@ -133,7 +132,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Login Form Container with Glassmorphism
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
                           child: BackdropFilter(
@@ -176,7 +174,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   const SizedBox(height: 32),
                                   
-                                  // Username or Email Field
                                   TextFormField(
                                     controller: _usernameController,
                                     keyboardType: TextInputType.text,
@@ -221,7 +218,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   
                                   const SizedBox(height: 24),
                                   
-                                  // Password Field
                                   TextFormField(
                                     controller: _passwordController,
                                     obscureText: _obscurePassword,
@@ -280,7 +276,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             
                                   const SizedBox(height: 32),
                                   
-                                  // Error Message
                                   if (_errorMessage != null)
                                     Container(
                                       padding: const EdgeInsets.all(16),
@@ -304,7 +299,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
                                   
-                                  // Login Button with Glassmorphism
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(15),
                                     child: BackdropFilter(
