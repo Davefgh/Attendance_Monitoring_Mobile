@@ -1,5 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'attendance_screen.dart';
+import 'dashboard_screen.dart';
+import 'profile_screen.dart';
 
 class QrScreen extends StatefulWidget {
   const QrScreen({super.key});
@@ -454,7 +457,11 @@ class _QrScreenState extends State<QrScreen> {
         currentIndex: 2,
         onTap: (index) {
           if (index == 0) {
-            Navigator.of(context).pop();
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
+          } else if (index == 1) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AttendanceScreen()));
+          } else if (index == 4) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
           }
         },
         items: const [
