@@ -29,6 +29,21 @@ class _QrScreenState extends State<QrScreen> {
 
   bool _showResult = false;
 
+  // Validation method to check if all fields are filled
+  bool get _isFormValid {
+    return _selectedSubject != 'Select Subject' && 
+           _roomController.text.trim().isNotEmpty;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listener to room controller to trigger rebuild when text changes
+    _roomController.addListener(() {
+      setState(() {});
+    });
+  }
+
   @override
   void dispose() {
     _roomController.dispose();
@@ -193,12 +208,12 @@ class _QrScreenState extends State<QrScreen> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: _isFormValid ? const Color(0xFF1E3A8A) : Colors.grey[400],
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
-              onPressed: () => setState(() => _showResult = true),
+              onPressed: _isFormValid ? () => setState(() => _showResult = true) : null,
               child: const Text('Generate QR Code'),
             ),
           ),
