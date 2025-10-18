@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/login_response_dto.dart';
+import '../services/api_service.dart';
+import '../services/storage_service.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -12,15 +14,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _apiService = ApiService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -36,20 +39,18 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // Simulate API call - replace with actual API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Mock response - replace with actual API response
-      final response = LoginResponseDto(
-        success: true,
-        message: 'Login successful',
-        accessToken: 'mock_access_token',
-        refreshToken: 'mock_refresh_token',
-        user: 'teacher@example.com',
+      final response = await _apiService.login(
+        _usernameController.text.trim(),
+        _passwordController.text,
       );
 
-      if (response.success) {
-        // Navigate to dashboard
+      if (response.success && response.accessToken != null) {
+        // Save tokens securely
+        await StorageService.saveTokens(
+          response.accessToken!,
+          response.refreshToken ?? '',
+        );
+        
         if (mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -64,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'An error occurred. Please try again.';
+        _errorMessage = 'Unable to connect to server. Please check your internet connection.';
       });
     } finally {
       if (mounted) {
@@ -175,17 +176,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   const SizedBox(height: 32),
                                   
-                                  // Email Field
+                                  // Username or Email Field
                                   TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
+                                    controller: _usernameController,
+                                    keyboardType: TextInputType.text,
                                     style: const TextStyle(color: Colors.white),
                                     decoration: InputDecoration(
-                                      labelText: 'Email Address',
+                                      labelText: 'Username or Email',
                                       labelStyle: TextStyle(color: Colors.white.withOpacity(0.8)),
-                                      hintText: 'Enter your email',
+                                      hintText: 'Enter your username or email',
                                       hintStyle: TextStyle(color: Colors.white.withOpacity(0.6)),
-                                      prefixIcon: const Icon(Icons.email_outlined, color: Colors.white),
+                                      prefixIcon: const Icon(Icons.person_outline, color: Colors.white),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(15),
                                         borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
@@ -198,16 +199,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                         borderRadius: BorderRadius.circular(15),
                                         borderSide: BorderSide(color: Colors.white.withOpacity(0.6), width: 2),
                                       ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        borderSide: BorderSide(color: Colors.red.withOpacity(0.6)),
+                                      ),
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        borderSide: BorderSide(color: Colors.red.withOpacity(0.8), width: 2),
+                                      ),
                                       filled: true,
                                       fillColor: Colors.white.withOpacity(0.1),
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return 'Please enter your email';
-                                      }
-                                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                                        return 'Please enter a valid email';
+                                        return 'Please enter your username or email';
                                       }
                                       return null;
                                     },
@@ -248,6 +254,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(15),
                                         borderSide: BorderSide(color: Colors.white.withOpacity(0.6), width: 2),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        borderSide: BorderSide(color: Colors.red.withOpacity(0.6)),
+                                      ),
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        borderSide: BorderSide(color: Colors.red.withOpacity(0.8), width: 2),
                                       ),
                                       filled: true,
                                       fillColor: Colors.white.withOpacity(0.1),
