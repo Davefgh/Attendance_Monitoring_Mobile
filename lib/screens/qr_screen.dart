@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'attendance_screen.dart';
 import 'dashboard_screen.dart';
 import 'profile_screen.dart';
+import 'sections_screen.dart';
 
 class QrScreen extends StatefulWidget {
   const QrScreen({super.key});
@@ -74,11 +75,17 @@ class _QrScreenState extends State<QrScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
-                    const BackButton(color: Colors.white),
+                    // Logo (replaces back button)
+                    Image.asset(
+                      'images/aclc logo.png',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         _showResult ? 'Attendance QR Code' : 'Generate QR',
-                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -86,7 +93,7 @@ class _QrScreenState extends State<QrScreen> {
                             ),
                       ),
                     ),
-                    const SizedBox(width: 48),
+                    const SizedBox(width: 48), // Balance the layout
                   ],
                 ),
               ),
@@ -475,6 +482,8 @@ class _QrScreenState extends State<QrScreen> {
             Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
           } else if (index == 1) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AttendanceScreen()));
+          } else if (index == 3) {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SectionsScreen()));
           } else if (index == 4) {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
           }

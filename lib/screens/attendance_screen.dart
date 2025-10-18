@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'profile_screen.dart';
 import 'qr_screen.dart';
+import 'sections_screen.dart';
 
 class AttendanceScreen extends StatefulWidget {
   const AttendanceScreen({super.key});
@@ -217,6 +218,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const DashboardScreen()));
             } else if (index == 2) {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const QrScreen()));
+            } else if (index == 3) {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => const SectionsScreen()));
             } else if (index == 4) {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => const ProfileScreen()));
             }
