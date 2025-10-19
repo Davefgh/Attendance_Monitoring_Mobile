@@ -2,6 +2,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/constants.dart';
+import 'storage_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -11,6 +12,8 @@ class ApiService {
   }
   
   ApiService._internal();
+  
+  // ==================== AUTH METHODS ====================
   
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
@@ -115,6 +118,241 @@ class ApiService {
       );
     } catch (e) {
       throw Exception('Network error: $e');
+    }
+  }
+
+  // ==================== SECTIONS METHODS ====================
+
+  /// Get all sections for the logged-in instructor
+  Future<Map<String, dynamic>> getInstructorSections() async {
+    try {
+      final token = await StorageService.getToken();
+      final instructorId = await StorageService.getInstructorId();
+      
+      if (token == null) {
+        return {
+          'success': false,
+          'error': 'Not authenticated. Please login again.',
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/api/sections'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw Exception('Connection timeout'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> sections = json.decode(response.body);
+        
+        // Group sections by program and filter by instructor
+        final Map<String, List<Map<String, dynamic>>> groupedSections = {};
+        
+        for (var section in sections) {
+          // Filter: Only include sections for this instructor
+          if (instructorId != null && 
+              section['instructor_id']?.toString() != instructorId.toString()) {
+            continue;
+          }
+          
+          // Extract program name from nested structure
+          String programName = 'Unknown Program';
+          try {
+            programName = section['subject']?['course']?['name'] ?? 
+                         section['course']?['name'] ?? 
+                         'Unknown Program';
+          } catch (e) {
+            print('Error extracting program name: $e');
+          }
+          
+          // Initialize program list if not exists
+          if (!groupedSections.containsKey(programName)) {
+            groupedSections[programName] = [];
+          }
+          
+          // Add section to program
+          groupedSections[programName]!.add({
+            'sectionId': section['id'],
+            'name': section['subject']?['name'] ?? section['name'] ?? 'Unknown Subject',
+            'code': section['subject']?['code'] ?? section['code'] ?? 'N/A',
+            'section': section['name'] ?? section['section_name'] ?? 'N/A',
+            'schedule': section['schedule'] ?? '',
+            'room': section['room'] ?? '',
+            'studentCount': section['student_count'] ?? section['students_count'] ?? 0,
+          });
+        }
+        
+        print('Grouped sections: $groupedSections');
+        
+        return {
+          'success': true,
+          'data': groupedSections,
+        };
+      } else if (response.statusCode == 401) {
+        return {
+          'success': false,
+          'error': 'Session expired. Please login again.',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to load sections: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Error in getInstructorSections: $e');
+      return {
+        'success': false,
+        'error': e.toString().contains('timeout') 
+            ? 'Connection timeout. Please check your internet.'
+            : 'Error: $e',
+      };
+    }
+  }
+
+  /// Get students for a specific section
+  Future<Map<String, dynamic>> getSectionStudents(int sectionId) async {
+    try {
+      final token = await StorageService.getToken();
+      
+      if (token == null) {
+        return {
+          'success': false,
+          'error': 'Not authenticated. Please login again.',
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/api/sections/$sectionId/active-students'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw Exception('Connection timeout'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> students = json.decode(response.body);
+        
+        final processedStudents = students.map((student) {
+          return {
+            'id': student['id'],
+            'studentId': student['student_id'] ?? student['id_number'] ?? 'N/A',
+            'firstName': student['first_name'] ?? student['firstname'] ?? '',
+            'lastName': student['last_name'] ?? student['lastname'] ?? '',
+            'middleName': student['middle_name'] ?? student['middlename'] ?? '',
+            'email': student['email'] ?? '',
+            'program': student['course']?['name'] ?? 
+                      student['program']?['name'] ?? 
+                      'N/A',
+            'yearLevel': student['year_level']?.toString() ?? 
+                        student['year']?.toString() ?? 
+                        'N/A',
+          };
+        }).toList();
+        
+        print('Processed ${processedStudents.length} students');
+        
+        return {
+          'success': true,
+          'data': processedStudents,
+        };
+      } else if (response.statusCode == 401) {
+        return {
+          'success': false,
+          'error': 'Session expired. Please login again.',
+        };
+      } else if (response.statusCode == 404) {
+        return {
+          'success': false,
+          'error': 'Section not found.',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to load students: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Error in getSectionStudents: $e');
+      return {
+        'success': false,
+        'error': e.toString().contains('timeout')
+            ? 'Connection timeout. Please check your internet.'
+            : 'Error: $e',
+      };
+    }
+  }
+
+  /// Get section details
+  Future<Map<String, dynamic>> getSectionDetails(int sectionId) async {
+    try {
+      final token = await StorageService.getToken();
+      
+      if (token == null) {
+        return {
+          'success': false,
+          'error': 'Not authenticated. Please login again.',
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/api/sections/$sectionId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw Exception('Connection timeout'),
+      );
+
+      if (response.statusCode == 200) {
+        final section = json.decode(response.body);
+        
+        return {
+          'success': true,
+          'data': {
+            'id': section['id'],
+            'name': section['name'] ?? section['section_name'] ?? 'N/A',
+            'subjectName': section['subject']?['name'] ?? 'Unknown',
+            'subjectCode': section['subject']?['code'] ?? 'N/A',
+            'schedule': section['schedule'] ?? '',
+            'room': section['room'] ?? '',
+            'programName': section['subject']?['course']?['name'] ?? 
+                          section['course']?['name'] ?? 
+                          'Unknown',
+          },
+        };
+      } else if (response.statusCode == 401) {
+        return {
+          'success': false,
+          'error': 'Session expired. Please login again.',
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to load section details: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      print('Error in getSectionDetails: $e');
+      return {
+        'success': false,
+        'error': e.toString().contains('timeout')
+            ? 'Connection timeout. Please check your internet.'
+            : 'Error: $e',
+      };
     }
   }
 }
