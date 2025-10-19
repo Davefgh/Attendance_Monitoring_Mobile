@@ -230,3 +230,4 @@ class ResponsiveText extends StatelessWidget {
     );
   }
 }
+
