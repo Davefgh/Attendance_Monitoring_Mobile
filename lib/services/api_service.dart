@@ -13,6 +13,16 @@ class ApiService {
   
   ApiService._internal();
   
+  // Helper method to get auth headers
+  Future<Map<String, String>> _getAuthHeaders() async {
+    final token = await StorageService.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+  
   // ==================== AUTH METHODS ====================
   
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -28,19 +38,21 @@ class ApiService {
           'password': password,
         }),
       ).timeout(
-        const Duration(seconds: 10),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
 
+      print('Login Status Code: ${response.statusCode}');
+      print('Login Response Body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 401) {
         final data = jsonDecode(response.body);
-        print('Login response: $data');
         return data;
       } else {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      print('Login catch error: $e');
+      print('Login error: $e');
       rethrow;
     }
   }
@@ -63,7 +75,7 @@ class ApiService {
           'password': password,
         }),
       ).timeout(
-        const Duration(seconds: 10),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
 
@@ -90,7 +102,7 @@ class ApiService {
           'refreshToken': refreshToken,
         }),
       ).timeout(
-        const Duration(seconds: 10),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
 
@@ -113,7 +125,7 @@ class ApiService {
           'Authorization': 'Bearer $accessToken',
         },
       ).timeout(
-        const Duration(seconds: 10),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
     } catch (e) {
@@ -129,6 +141,9 @@ class ApiService {
       final token = await StorageService.getToken();
       final instructorId = await StorageService.getInstructorId();
       
+      print('🔑 Token: ${token != null ? "Present (${token.substring(0, 20)}...)" : "Missing"}');
+      print('👤 Instructor ID: $instructorId');
+      
       if (token == null) {
         return {
           'success': false,
@@ -136,17 +151,25 @@ class ApiService {
         };
       }
 
+      // Construct the full URL
+      final url = '${ApiConstants.baseUrl}${ApiConstants.sectionsEndpoint}';
+      print('🌐 Fetching sections from: $url');
+
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/api/sections'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       ).timeout(
-        const Duration(seconds: 15),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
+
+      print('📊 Response Status: ${response.statusCode}');
+      print('📄 Response Headers: ${response.headers}');
+      print('📝 Response Body: ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}...');
 
       if (response.statusCode == 200) {
         final List<dynamic> sections = json.decode(response.body);
@@ -158,6 +181,7 @@ class ApiService {
           // Filter: Only include sections for this instructor
           if (instructorId != null && 
               section['instructor_id']?.toString() != instructorId.toString()) {
+            print('⏭️  Skipping section ${section['id']} (instructor: ${section['instructor_id']})');
             continue;
           }
           
@@ -168,7 +192,7 @@ class ApiService {
                          section['course']?['name'] ?? 
                          'Unknown Program';
           } catch (e) {
-            print('Error extracting program name: $e');
+            print('⚠️  Error extracting program name: $e');
           }
           
           // Initialize program list if not exists
@@ -188,25 +212,33 @@ class ApiService {
           });
         }
         
-        print('Grouped sections: $groupedSections');
+        print('✅ Grouped sections: ${groupedSections.keys.length} programs, ${groupedSections.values.fold(0, (sum, list) => sum + list.length)} sections');
         
         return {
           'success': true,
           'data': groupedSections,
         };
       } else if (response.statusCode == 401) {
+        print('🔒 Unauthorized - Token may be expired');
         return {
           'success': false,
           'error': 'Session expired. Please login again.',
         };
+      } else if (response.statusCode == 403) {
+        print('🚫 Forbidden - Check backend permissions');
+        return {
+          'success': false,
+          'error': 'Access denied. Your account may not have permission to view sections.',
+        };
       } else {
+        print('❌ Unexpected status: ${response.statusCode}');
         return {
           'success': false,
           'error': 'Failed to load sections: ${response.statusCode}',
         };
       }
     } catch (e) {
-      print('Error in getInstructorSections: $e');
+      print('💥 Error in getInstructorSections: $e');
       return {
         'success': false,
         'error': e.toString().contains('timeout') 
@@ -228,17 +260,22 @@ class ApiService {
         };
       }
 
+      final url = '${ApiConstants.baseUrl}${ApiConstants.sectionStudentsEndpoint(sectionId)}';
+      print('🌐 Fetching students from: $url');
+
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/api/sections/$sectionId/active-students'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       ).timeout(
-        const Duration(seconds: 15),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
+
+      print('📊 Students Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final List<dynamic> students = json.decode(response.body);
@@ -260,7 +297,7 @@ class ApiService {
           };
         }).toList();
         
-        print('Processed ${processedStudents.length} students');
+        print('✅ Processed ${processedStudents.length} students');
         
         return {
           'success': true,
@@ -270,6 +307,11 @@ class ApiService {
         return {
           'success': false,
           'error': 'Session expired. Please login again.',
+        };
+      } else if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'error': 'Access denied to this section.',
         };
       } else if (response.statusCode == 404) {
         return {
@@ -283,7 +325,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Error in getSectionStudents: $e');
+      print('💥 Error in getSectionStudents: $e');
       return {
         'success': false,
         'error': e.toString().contains('timeout')
@@ -305,17 +347,22 @@ class ApiService {
         };
       }
 
+      final url = '${ApiConstants.baseUrl}${ApiConstants.sectionDetailsEndpoint(sectionId)}';
+      print('🌐 Fetching section details from: $url');
+
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/api/sections/$sectionId'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       ).timeout(
-        const Duration(seconds: 10),
+        ApiConstants.connectionTimeout,
         onTimeout: () => throw Exception('Connection timeout'),
       );
+
+      print('📊 Section Details Response Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final section = json.decode(response.body);
@@ -339,6 +386,11 @@ class ApiService {
           'success': false,
           'error': 'Session expired. Please login again.',
         };
+      } else if (response.statusCode == 403) {
+        return {
+          'success': false,
+          'error': 'Access denied to this section.',
+        };
       } else {
         return {
           'success': false,
@@ -346,7 +398,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Error in getSectionDetails: $e');
+      print('💥 Error in getSectionDetails: $e');
       return {
         'success': false,
         'error': e.toString().contains('timeout')
